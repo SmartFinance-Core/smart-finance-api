@@ -27,4 +27,24 @@ public class JwtService {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256) // Lo firmamos con nuestra llave
                 .compact(); // Construimos el token final
     }
+
+    // Añade esto dentro de JwtService.java
+
+    public String extractUsername(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject(); // El subject es el email que guardamos
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            return false; // Si expira o lo modifican, falla y retorna falso
+        }
+    }
 }
