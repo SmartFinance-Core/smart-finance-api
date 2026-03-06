@@ -1,5 +1,6 @@
 package com.dev.smartfinanceapi.controllers;
 
+import com.dev.smartfinanceapi.dtos.ExpenseRequest;
 import com.dev.smartfinanceapi.models.Expense;
 import com.dev.smartfinanceapi.services.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +20,8 @@ public class ExpenseController {
 
     // POST: http://localhost:8080/api/expenses
     @PostMapping
-    public ResponseEntity<Expense> createExpense(@RequestBody Expense expense) {
-        Expense newExpense = expenseService.createExpense(expense);
+    public ResponseEntity<Expense> createExpense(@RequestBody ExpenseRequest request) {
+        Expense newExpense = expenseService.createExpense(request);
         return new ResponseEntity<>(newExpense, HttpStatus.CREATED);
     }
 
