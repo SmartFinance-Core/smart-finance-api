@@ -3,6 +3,7 @@ package com.dev.smartfinanceapi.controllers;
 import com.dev.smartfinanceapi.dtos.ExpenseRequest;
 import com.dev.smartfinanceapi.models.Expense;
 import com.dev.smartfinanceapi.services.ExpenseService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,9 @@ public class ExpenseController {
     private ExpenseService expenseService;
 
     // POST: http://localhost:8080/api/expenses
+// Fíjate en el @Valid que acabamos de agregar:
     @PostMapping
-    public ResponseEntity<Expense> createExpense(@RequestBody ExpenseRequest request) {
+    public ResponseEntity<Expense> createExpense(@Valid @RequestBody ExpenseRequest request) {
         Expense newExpense = expenseService.createExpense(request);
         return new ResponseEntity<>(newExpense, HttpStatus.CREATED);
     }
