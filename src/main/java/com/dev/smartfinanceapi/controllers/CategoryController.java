@@ -3,6 +3,7 @@ package com.dev.smartfinanceapi.controllers;
 import com.dev.smartfinanceapi.models.Category;
 import com.dev.smartfinanceapi.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class CategoryController {
     }
 
     @GetMapping
+    @Cacheable(value = "categoriesCache")
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }

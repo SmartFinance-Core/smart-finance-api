@@ -1,5 +1,6 @@
 package com.dev.smartfinanceapi.services;
 
+import com.dev.smartfinanceapi.config.RabbitMQConfig;
 import com.dev.smartfinanceapi.dtos.ExpenseRequest;
 import com.dev.smartfinanceapi.models.Category;
 import com.dev.smartfinanceapi.models.Expense;
@@ -7,7 +8,10 @@ import com.dev.smartfinanceapi.models.User;
 import com.dev.smartfinanceapi.repositories.CategoryRepository;
 import com.dev.smartfinanceapi.repositories.ExpenseRepository;
 import com.dev.smartfinanceapi.repositories.UserRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,10 +22,16 @@ public class ExpenseService {
 
     @Autowired
     private ExpenseRepository expenseRepository;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private CategoryRepository categoryRepository;
+
+    // 1. Inyectamos la plantilla de RabbitMQ
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     public Expense createExpense(ExpenseRequest request) {
         // 1. Buscamos el Usuario y la Categoría en la base de datos
@@ -39,8 +49,14 @@ public class ExpenseService {
         expense.setUser(user);
         expense.setCategory(category);
 
-        // 3. Lo guardamos
-        return expenseRepository.save(expense);
+        // 3. Lo guardamos en MySQL
+        Expense savedExpense = expenseRepository.save(expense);
+
+        // 4. LA MAGIA ASÍNCRONA: Dejamos la carta en la oficina de correos de RabbitMQ
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY, savedExpense);
+
+        // 5. Devolvemos la respuesta al usuario inmediatamente
+        return savedExpense;
     }
 
     public List<Expense> getExpensesByUserId(Long userId) {
@@ -50,8 +66,9 @@ public class ExpenseService {
     public void deleteExpense(Long id) {
         expenseRepository.deleteById(id);
     }
-    public org.springframework.data.domain.Page<Expense> getFilteredExpenses(
-            Long userId, Long categoryId, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate, org.springframework.data.domain.Pageable pageable) {
+
+    public Page<Expense> getFilteredExpenses(
+            Long userId, Long categoryId, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
         return expenseRepository.findExpensesWithFilters(userId, categoryId, startDate, endDate, pageable);
     }
 }

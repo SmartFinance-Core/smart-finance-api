@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. Nuestro contenedor de Base de Datos
+  # 1. Nuestro contenedor de Base de Datos (MySQL)
   db:
     image: mysql:8.0
     container_name: smart-finance-db
@@ -10,11 +10,28 @@ services:
       MYSQL_DATABASE: smart_finance_db
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - "3307:3306" # Lo exponemos en el 3307 de tu PC para que no choque con tu MySQL local
+      - "3307:3306"
     volumes:
-      - mysql_data:/var/lib/mysql # Guarda los datos para que no se borren si apagamos Docker
+      - mysql_data:/var/lib/mysql
 
-  # 2. Nuestro contenedor del Backend (Spring Boot)
+  # 2. El nuevo motor de Caché ultrarrápido (Redis)
+  redis:
+    image: redis:7.0-alpine
+    container_name: smart-finance-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 3. Nuestro Gestor de Colas de Mensajes (La oficina de correos)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: smart-finance-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # Puerto interno para que Java se comunique
+      - "15672:15672" # Puerto web para la interfaz gráfica
+
+  # 4. Nuestro contenedor del Backend (Spring Boot)
   api:
     build: .
     container_name: smart-finance-api
@@ -22,13 +39,16 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Ojo aquí: Le decimos a Spring que se conecte a "db" (el nombre del contenedor de arriba)
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/smart_finance_db?serverTimezone=UTC
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      - db # La API espera a que la base de datos se encienda primero
+      - db
+      - redis
+      - rabbitmq # La API ahora espera a que los tres motores estén encendidos
 
 volumes:
   mysql_data:
