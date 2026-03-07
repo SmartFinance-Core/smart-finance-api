@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class JwtService {
@@ -19,15 +21,18 @@ public class JwtService {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    public String generateToken(String email) {
+    public String generateToken(Map<String, Object> extraClaims, String email) {
         return Jwts.builder()
-                .setSubject(email) // Guardamos el correo del usuario dentro del token
-                .setIssuedAt(new Date(System.currentTimeMillis())) // Fecha de creación
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // Expira en 24 horas
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256) // Lo firmamos con nuestra llave
-                .compact(); // Construimos el token final
+                .setClaims(extraClaims) // <-- ¡Aquí inyectamos el ID!
+                .setSubject(email)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
     }
-
+    public String generateToken(String email) {
+        return generateToken(new HashMap<>(), email);
+    }
     // Añade esto dentro de JwtService.java
 
     public String extractUsername(String token) {

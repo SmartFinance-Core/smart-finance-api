@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -28,7 +29,8 @@ class ExpenseServiceTest {
     // Clonamos TODOS los repositorios que usa tu servicio
     @Mock
     private ExpenseRepository expenseRepository;
-
+    @Mock
+    private RabbitTemplate rabbitTemplate;
     @Mock
     private UserRepository userRepository;
 

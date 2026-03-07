@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
@@ -24,7 +27,7 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private JwtService jwtService; // Inyectamos el nuevo servicio
+    private JwtService jwtService;
 
     // RUTA 1: REGISTRO
     @PostMapping("/register")
@@ -37,10 +40,15 @@ public class AuthController {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
+        // Guardamos en MySQL (JPA le asigna el ID automáticamente a la variable 'user')
         userRepository.save(user);
 
-        // Generamos el token real
-        String token = jwtService.generateToken(user.getEmail());
+        // 1. Creamos el maletín con el ID real recién creado
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("userId", user.getId());
+
+        // 2. Generamos el token inyectando el maletín y el correo
+        String token = jwtService.generateToken(extraClaims, user.getEmail());
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
@@ -50,13 +58,17 @@ public class AuthController {
         // 1. Buscamos al usuario por correo
         User user = userRepository.findByEmail(request.getEmail());
 
-        // 2. Si no existe o la contraseña no coincide (usando el desencriptador)
+        // 2. Si no existe o la contraseña no coincide
         if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Error 401
         }
 
-        // 3. Si todo está bien, generamos un nuevo token
-        String token = jwtService.generateToken(user.getEmail());
+        // 3. Creamos el maletín con el ID del usuario
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("userId", user.getId());
+
+        // 4. Generamos un nuevo token inyectando el ID
+        String token = jwtService.generateToken(extraClaims, user.getEmail());
         return ResponseEntity.ok(new AuthResponse(token));
     }
 }
