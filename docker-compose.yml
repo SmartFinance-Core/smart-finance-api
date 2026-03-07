@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # 1. Nuestro contenedor de Base de Datos
+  db:
+    image: mysql:8.0
+    container_name: smart-finance-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: smart_finance_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306" # Lo exponemos en el 3307 de tu PC para que no choque con tu MySQL local
+    volumes:
+      - mysql_data:/var/lib/mysql # Guarda los datos para que no se borren si apagamos Docker
+
+  # 2. Nuestro contenedor del Backend (Spring Boot)
+  api:
+    build: .
+    container_name: smart-finance-api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      # Ojo aquí: Le decimos a Spring que se conecte a "db" (el nombre del contenedor de arriba)
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/smart_finance_db?serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      - db # La API espera a que la base de datos se encienda primero
+
+volumes:
+  mysql_data:
