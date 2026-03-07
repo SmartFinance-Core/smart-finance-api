@@ -24,4 +24,17 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             "FROM Expense e JOIN e.category c " +
             "WHERE e.user.id = :userId GROUP BY c.name")
     List<CategoryTotal> getTotalExpensesByCategory(@Param("userId") Long userId);
+
+    @Query("SELECT e FROM Expense e WHERE e.user.id = :userId " +
+            "AND (:categoryId IS NULL OR e.category.id = :categoryId) " +
+            "AND (:startDate IS NULL OR e.date >= :startDate) " +
+            "AND (:endDate IS NULL OR e.date <= :endDate)")
+    org.springframework.data.domain.Page<Expense> findExpensesWithFilters(
+            @Param("userId") Long userId,
+            @Param("categoryId") Long categoryId,
+            @Param("startDate") java.time.LocalDateTime startDate,
+            @Param("endDate") java.time.LocalDateTime endDate,
+            org.springframework.data.domain.Pageable pageable
+    );
+
 }

@@ -50,4 +50,8 @@ public class ExpenseService {
     public void deleteExpense(Long id) {
         expenseRepository.deleteById(id);
     }
+    public org.springframework.data.domain.Page<Expense> getFilteredExpenses(
+            Long userId, Long categoryId, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate, org.springframework.data.domain.Pageable pageable) {
+        return expenseRepository.findExpensesWithFilters(userId, categoryId, startDate, endDate, pageable);
+    }
 }

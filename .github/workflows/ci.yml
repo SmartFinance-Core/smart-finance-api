@@ -1,0 +1,39 @@
+name: Java CI with Spring Boot and MySQL
+
+# 1. ¿CUÁNDO se ejecuta esto? (Trigger)
+on:
+  push:
+    branches: [ "main" ] # Cada vez que subas código a la rama main
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # GitHub nos presta un servidor con Ubuntu recién instalado
+
+    # 3. Necesitamos una base de datos para que Spring Boot no tire error al encender
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: smart_finance_db
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    # 4. Los pasos secuenciales (Steps)
+    steps:
+      - name: 📥 Descargar el código del repositorio
+        uses: actions/checkout@v4
+
+      - name: ☕ Instalar Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven # Guarda las dependencias de Maven para que la próxima vez sea más rápido
+
+      - name: 🚀 Compilar y probar el proyecto
+        # Este comando descarga librerías, compila el código, y verifica que todo encienda bien
+        run: mvn clean package

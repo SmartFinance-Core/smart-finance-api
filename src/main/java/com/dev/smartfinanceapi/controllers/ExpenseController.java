@@ -40,4 +40,26 @@ public class ExpenseController {
         expenseService.deleteExpense(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    // GET: http://localhost:8080/api/expenses/filter/1?page=0&size=10&categoryId=1
+    @GetMapping("/filter/{userId}")
+    public ResponseEntity<org.springframework.data.domain.Page<Expense>> getFilteredExpenses(
+            @PathVariable Long userId,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String startDate, // Formato esperado: 2026-01-01T00:00:00
+            @RequestParam(required = false) String endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "date") String sortBy) {
+
+        java.time.LocalDateTime start = startDate != null ? java.time.LocalDateTime.parse(startDate) : null;
+        java.time.LocalDateTime end = endDate != null ? java.time.LocalDateTime.parse(endDate) : null;
+
+        // Creamos el objeto de paginación ordenado
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, sortBy));
+
+        return new ResponseEntity<>(expenseService.getFilteredExpenses(userId, categoryId, start, end, pageable), HttpStatus.OK);
+    }
+
 }
