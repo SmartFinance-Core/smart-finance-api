@@ -51,6 +51,19 @@ public class PredictionService {
         RestTemplate restTemplate = new RestTemplate();
         String pythonUrl = "http://localhost:8000/api/predict-burn-rate";
 
-        return restTemplate.postForObject(pythonUrl, payload, PredictionResponse.class);
+        try {
+            return restTemplate.postForObject(pythonUrl, payload, PredictionResponse.class);
+        } catch (Exception e) {
+            System.err.println("⚠️ [ALERTA] No se pudo conectar con el motor de IA en Python: " + e.getMessage());
+
+            // Creamos una respuesta de "contingencia" para no romper la app
+            PredictionResponse fallback = new PredictionResponse();
+            fallback.setDailyAverage(0.0);
+            fallback.setDaysRemaining(0);
+            fallback.setZeroDate(null);
+            fallback.setMessage("El motor de predicción no está disponible en este momento. Revisa más tarde.");
+
+            return fallback;
+        }
     }
 }

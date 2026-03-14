@@ -11,6 +11,7 @@ import com.dev.smartfinanceapi.repositories.UserRepository;
 import com.dev.smartfinanceapi.services.ExpenseService;
 import com.dev.smartfinanceapi.services.IncomeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,8 @@ public class WebhookController {
 
     // Esta es la llave secreta que solo Java y n8n conocerán.
     // (En un entorno profesional real, esto va en el application.properties)
-    private static final String N8N_API_KEY = "n8n_secret_smartfinance_2026";
+    @Value("${n8n.api.key}")
+    private String n8nApiKey;
 
     @Autowired
     private UserRepository userRepository;
@@ -40,7 +42,7 @@ public class WebhookController {
             @RequestBody WebhookExpenseRequest request) {
 
         // 1. EL GUARDIA VIP: Validamos la llave de seguridad
-        if (apiKey == null || !apiKey.equals(N8N_API_KEY)) {
+        if (apiKey == null || !apiKey.equals(n8nApiKey)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acceso denegado: API Key inválida");
         }
 
@@ -80,7 +82,7 @@ public class WebhookController {
             @RequestBody WebhookIncomeRequest request) {
 
         // 1. Validamos la misma llave de seguridad
-        if (apiKey == null || !apiKey.equals(N8N_API_KEY)) {
+        if (apiKey == null || !apiKey.equals(n8nApiKey)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acceso denegado: API Key inválida");
         }
 

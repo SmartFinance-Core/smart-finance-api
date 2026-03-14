@@ -1,17 +1,15 @@
-name: Java CI with Spring Boot and MySQL
+name: Java CI with Spring Boot, MySQL and DevSecOps
 
-# 1. ¿CUÁNDO se ejecuta esto? (Trigger)
 on:
   push:
-    branches: [ "main" ] # Cada vez que subas código a la rama main
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest # GitHub nos presta un servidor con Ubuntu recién instalado
+  build-and-test:
+    runs-on: ubuntu-latest
 
-    # 3. Necesitamos una base de datos para que Spring Boot no tire error al encender
     services:
       mysql:
         image: mysql:8.0
@@ -22,9 +20,8 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
-    # 4. Los pasos secuenciales (Steps)
     steps:
-      - name: 📥 Descargar el código del repositorio
+      - name: 📥 Descargar el código
         uses: actions/checkout@v4
 
       - name: ☕ Instalar Java 17
@@ -32,8 +29,41 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: maven # Guarda las dependencias de Maven para que la próxima vez sea más rápido
+          cache: maven
 
       - name: 🚀 Compilar y probar el proyecto
-        # Este comando descarga librerías, compila el código, y verifica que todo encienda bien
         run: mvn clean package
+
+      # ✨ NUEVO: Verificación de dependencias vulnerables (DevSecOps)
+      - name: 🛡️ Escanear vulnerabilidades en dependencias
+        run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=8
+        continue-on-error: true # Al principio lo dejamos en true para que no bloquee tu trabajo
+
+  security-scan:
+    name: Análisis de Código Estático (CodeQL)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      - name: 📥 Descargar el código
+        uses: actions/checkout@v4
+
+      - name: 🧠 Inicializar CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+
+      - name: ☕ Configurar Java para CodeQL
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 🏗️ Construir proyecto
+        run: mvn clean package -DskipTests
+
+      - name: 🔬 Ejecutar Análisis CodeQL
+        uses: github/codeql-action/analyze@v3
