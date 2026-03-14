@@ -1,0 +1,17 @@
+package com.dev.smartfinanceapi.dtos;
+
+import java.math.BigDecimal;
+
+public class WebhookIncomeRequest {
+    private String userEmail;
+    private BigDecimal amount;
+    private String source; // Ej: "Sueldo BCP", "Yape de Cliente"
+
+    // Getters y Setters
+    public String getUserEmail() { return userEmail; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
+}

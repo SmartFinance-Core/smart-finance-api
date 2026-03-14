@@ -41,9 +41,20 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // 4. Protegemos las rutas
+// 4. Protegemos las rutas
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Login y Registro públicos
-                        .anyRequest().authenticated() // CUALQUIER otra ruta EXIGE Token
+                        .requestMatchers("/api/auth/**",
+                                "/api/auth/**",           // Tu login y registro
+                                "/v3/api-docs/**",        // Documentación JSON
+                                "/swagger-ui/**",         // Interfaz de Swagger
+                                "/swagger-ui.html",       // Acceso directo
+                                "/api/webhook/**"         // El webhook de n8n (que ya funciona)
+                                ).permitAll() // Login y Registro públicos
+
+                        // ✨ ABRIMOS LA PUERTA PARA EL WEBHOOK
+                        .requestMatchers("/api/webhook/**").permitAll()
+
+                        .anyRequest().authenticated() // CUALQUIER otra ruta EXIGE Token JWT
                 )
 
                 // 5. ¡AQUÍ ESTÁ LA MAGIA! Ponemos a nuestro guardia JWT a revisar antes que nadie
