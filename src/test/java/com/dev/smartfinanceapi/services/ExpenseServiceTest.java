@@ -1,12 +1,12 @@
 package com.dev.smartfinanceapi.services;
 
-import com.dev.smartfinanceapi.dtos.ExpenseRequest;
 import com.dev.smartfinanceapi.models.Category;
 import com.dev.smartfinanceapi.models.Expense;
 import com.dev.smartfinanceapi.models.User;
 import com.dev.smartfinanceapi.repositories.CategoryRepository;
 import com.dev.smartfinanceapi.repositories.ExpenseRepository;
 import com.dev.smartfinanceapi.repositories.UserRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,72 +15,84 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ExpenseServiceTest {
 
-    // Clonamos TODOS los repositorios que usa tu servicio
     @Mock
     private ExpenseRepository expenseRepository;
+
     @Mock
     private RabbitTemplate rabbitTemplate;
+
     @Mock
     private UserRepository userRepository;
 
     @Mock
     private CategoryRepository categoryRepository;
 
-    // Inyectamos los clones en tu servicio real
     @InjectMocks
     private ExpenseService expenseService;
 
     @Test
-    void createExpense_ShouldReturnSavedExpense() {
-        // 1. ARRANGE: Preparamos los datos
-        // Usamos tu DTO de entrada
-        ExpenseRequest request = new ExpenseRequest();
-        request.setAmount(new BigDecimal("15.50")); // Cambia a Double si en tu entidad usas Double (ej. 15.50)
-        request.setDescription("Prueba de Gasto");
-        request.setCategoryId(1L);
-        request.setUserId(1L);
-
-        // Simulamos un Usuario y una Categoría que ya existen en la BD
+    @DisplayName("createExpense: debe guardar el gasto y publicar evento en RabbitMQ")
+    void createExpense_ShouldSaveAndPublishEvent() {
         User mockUser = new User();
         mockUser.setId(1L);
 
         Category mockCategory = new Category();
         mockCategory.setId(1L);
+        mockCategory.setName("Alimentación");
 
-        // El gasto final que la BD "guardaría"
+        Expense inputExpense = new Expense();
+        inputExpense.setAmount(new BigDecimal("15.50"));
+        inputExpense.setDescription("Almuerzo universitario");
+        inputExpense.setUser(mockUser);
+        inputExpense.setCategory(mockCategory);
+
         Expense savedExpense = new Expense();
         savedExpense.setId(1L);
         savedExpense.setAmount(new BigDecimal("15.50"));
-        savedExpense.setDescription("Prueba de Gasto");
+        savedExpense.setDescription("Almuerzo universitario");
         savedExpense.setUser(mockUser);
         savedExpense.setCategory(mockCategory);
 
-        // Le damos instrucciones a los clones:
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(mockCategory));
         when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
+        doNothing().when(rabbitTemplate).convertAndSend(anyString(), anyString(), anyString());
 
-        // 2. ACT: Ejecutamos el método con el DTO
-        Expense result = expenseService.createExpense(request);
+        Expense result = expenseService.createExpense(inputExpense);
 
-        // 3. ASSERT: Verificamos que todo haya funcionado
-        assertNotNull(result, "El resultado no debe ser nulo");
-        assertEquals(1L, result.getId(), "El ID debe ser 1");
-        assertEquals("Prueba de Gasto", result.getDescription());
-        assertEquals(1L, result.getUser().getId(), "Debe tener el usuario correcto");
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals(new BigDecimal("15.50"), result.getAmount());
+        assertEquals("Almuerzo universitario", result.getDescription());
+        assertEquals(1L, result.getUser().getId());
 
-        // Verificamos que el servicio intentó guardar en la BD exactamente una vez
-        verify(expenseRepository).save(any(Expense.class));
+        verify(expenseRepository, times(1)).save(any(Expense.class));
+        verify(rabbitTemplate, times(1)).convertAndSend(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("createExpense: si el repository falla, no debe disparar RabbitMQ")
+    void createExpense_WhenRepositoryFails_ShouldThrowWithoutPublishing() {
+        Expense inputExpense = new Expense();
+        inputExpense.setAmount(new BigDecimal("50.00"));
+        inputExpense.setDescription("Gasto que fallará");
+
+        when(expenseRepository.save(any(Expense.class)))
+                .thenThrow(new RuntimeException("DB connection lost"));
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> expenseService.createExpense(inputExpense)
+        );
+        assertEquals("DB connection lost", ex.getMessage());
+
+        verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), anyString());
     }
 }
