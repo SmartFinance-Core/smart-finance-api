@@ -4,8 +4,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 # Compilamos el proyecto y saltamos los tests para que sea más rápido
-RUN mvn clean package -DskipTests
-
+RUN mvn clean package
 # Etapa 2: Ejecución (Usamos una versión ligera de Java para correr la app)
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

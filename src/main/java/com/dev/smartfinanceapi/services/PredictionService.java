@@ -1,5 +1,5 @@
 package com.dev.smartfinanceapi.services;
-
+import org.springframework.beans.factory.annotation.Value;
 import com.dev.smartfinanceapi.dtos.PredictionResponse;
 import com.dev.smartfinanceapi.models.Expense;
 import com.dev.smartfinanceapi.models.Income;
@@ -23,6 +23,9 @@ public class PredictionService {
 
     @Autowired
     private IncomeRepository incomeRepository;
+
+    @Value("${ai.service.url}")
+    private String aiServiceUrl;
 
     public PredictionResponse getBurnRatePrediction(Long userId) {
         // 1. Traemos todo tu historial de la Base de Datos
@@ -49,7 +52,7 @@ public class PredictionService {
 
         // 5. ¡El Disparo! Java se comunica con Python
         RestTemplate restTemplate = new RestTemplate();
-        String pythonUrl = "http://localhost:8000/api/predict-burn-rate";
+        String pythonUrl = aiServiceUrl + "/api/predict-burn-rate";
 
         try {
             return restTemplate.postForObject(pythonUrl, payload, PredictionResponse.class);

@@ -15,12 +15,16 @@ public class JwtService {
 
     // Esta es tu firma digital. En producción, esto iría en variables de entorno, no en el código.
     // IMPORTANTE: Debe ser una cadena larga y segura (mínimo 256 bits).
-    private static final String SECRET_KEY = "SmartFinanceApiSecretKeySuperSeguraYFuerte12345!";
+    @org.springframework.beans.factory.annotation.Value("${jwt.secret}")
+    private String SECRET_KEY;
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        byte[] keyBytes = SECRET_KEY.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException("JWT secret debe tener mínimo 32 caracteres");
+        }
+        return Keys.hmacShaKeyFor(keyBytes);
     }
-
     public String generateToken(Map<String, Object> extraClaims, String email) {
         return Jwts.builder()
                 .setClaims(extraClaims) // <-- ¡Aquí inyectamos el ID!

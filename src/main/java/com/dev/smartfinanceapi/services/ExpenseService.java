@@ -20,6 +20,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.http.HttpEntity;
 import org.springframework.core.io.ByteArrayResource;
 import java.io.IOException;
+import org.springframework.beans.factory.annotation.Value;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,9 @@ public class ExpenseService {
     @Autowired
     private RabbitTemplate rabbitTemplate; // Tu conexión a RabbitMQ
 
+    @Value("${ai.service.url}")
+    private String aiServiceUrl;
+
     // 1. Traer gastos por usuario
     public List<Expense> getExpensesByUserId(Long userId) {
         return expenseRepository.findByUserId(userId);
@@ -50,14 +54,13 @@ public class ExpenseService {
         Expense savedExpense = expenseRepository.save(expense);
 
         // Disparamos el evento asíncrono que ya tenías configurado
-        rabbitTemplate.convertAndSend("finance_exchange", "expense_routing_key", "Nuevo gasto registrado: " + savedExpense.getAmount());
-
+        rabbitTemplate.convertAndSend("expense_exchange", "expense_routing_key", "Nuevo gasto registrado: " + savedExpense.getAmount());
         return savedExpense;
     }
     public Expense processReceiptImage(MultipartFile file, Long userId) {
         try {
             RestTemplate restTemplate = new RestTemplate();
-            String pythonUrl = "http://localhost:8000/api/ai/parse-receipt";
+            String pythonUrl = aiServiceUrl + "/api/ai/parse-receipt";
 
             // Configuramos la cabecera para enviar un archivo (MULTIPART)
             HttpHeaders headers = new HttpHeaders();
@@ -93,8 +96,7 @@ public class ExpenseService {
             newExpense.setDate(LocalDateTime.now());
 
             Expense savedExpense = expenseRepository.save(newExpense);
-            rabbitTemplate.convertAndSend("finance_exchange", "expense_routing_key", "Boleta escaneada por IA: " + savedExpense.getAmount());
-
+            rabbitTemplate.convertAndSend("expense_exchange", "expense_routing_key", "Boleta escaneada por IA: " + savedExpense.getAmount());
             return savedExpense;
 
         } catch (IOException e) {
@@ -105,7 +107,8 @@ public class ExpenseService {
     public Expense processNaturalLanguageExpense(String text, Long userId) {
         // A. Preparamos la llamada a Python
         RestTemplate restTemplate = new RestTemplate();
-        String pythonUrl = "http://localhost:8000/api/ai/parse-text";
+        String pythonUrl = aiServiceUrl + "/api/ai/parse-text";
+
 
         Map<String, String> request = new HashMap<>();
         request.put("text", text);
@@ -144,7 +147,7 @@ public class ExpenseService {
         Expense savedExpense = expenseRepository.save(newExpense);
 
         // G. Disparamos RabbitMQ para que los otros sistemas se enteren
-        rabbitTemplate.convertAndSend("finance_exchange", "expense_routing_key", "Nuevo gasto por IA: " + savedExpense.getAmount());
+        rabbitTemplate.convertAndSend("expense_exchange", "expense_routing_key", "Nuevo gasto por IA: " + savedExpense.getAmount());
 
         return savedExpense;
     }

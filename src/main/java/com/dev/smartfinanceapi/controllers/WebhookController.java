@@ -1,5 +1,6 @@
 package com.dev.smartfinanceapi.controllers;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.dev.smartfinanceapi.dtos.WebhookExpenseRequest;
 import com.dev.smartfinanceapi.dtos.WebhookIncomeRequest;
 import com.dev.smartfinanceapi.models.Category;
@@ -35,7 +36,7 @@ public class WebhookController {
 
     @Autowired
     private ExpenseService expenseService;
-
+    private static final Logger log = LoggerFactory.getLogger(WebhookController.class);
     @PostMapping("/n8n/receipt")
     public ResponseEntity<?> receiveReceiptFromN8n(
             @RequestHeader(value = "x-api-key", required = false) String apiKey,
@@ -67,8 +68,7 @@ public class WebhookController {
         // 5. Lo guardamos (Y aprovechamos para que tu servicio dispare el evento a RabbitMQ)
         Expense savedExpense = expenseService.createExpense(newExpense);
 
-        System.out.println("✅ [WEBHOOK] Gasto automático registrado desde n8n: S/" + savedExpense.getAmount());
-
+        log.info("[WEBHOOK] Gasto registrado desde n8n. Monto: {}", savedExpense.getAmount());
         return ResponseEntity.ok(savedExpense);
     }
     // ... (asegúrate de inyectar el IncomeService arriba si no lo tienes)
@@ -112,8 +112,7 @@ public class WebhookController {
         // 4. Lo guardamos en la base de datos
         Income savedIncome = incomeService.createIncome(newIncome);
 
-        System.out.println("💰 [WEBHOOK] Ingreso automático registrado desde n8n: S/" + savedIncome.getAmount());
-
+        log.info("[WEBHOOK] Ingreso registrado desde n8n. Monto: {}", savedIncome.getAmount());
         return ResponseEntity.ok(savedIncome);
     }
 }

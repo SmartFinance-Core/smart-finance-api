@@ -1,5 +1,5 @@
 package com.dev.smartfinanceapi.config;
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -47,8 +47,7 @@ public class SecurityConfig {
                                 "/api/auth/**",           // Tu login y registro
                                 "/v3/api-docs/**",        // Documentación JSON
                                 "/swagger-ui/**",         // Interfaz de Swagger
-                                "/swagger-ui.html",       // Acceso directo
-                                "/api/webhook/**"         // El webhook de n8n (que ya funciona)
+                                "/swagger-ui.html"       // Acceso directo
                                 ).permitAll() // Login y Registro públicos
 
                         // ✨ ABRIMOS LA PUERTA PARA EL WEBHOOK
@@ -62,12 +61,16 @@ public class SecurityConfig {
 
         return http.build();
     }
-
+    @Value("${cors.allowed.origin}")
+    private String corsAllowedOrigin;
     // --- EL CEREBRO DEL CORS ---
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:4200",
+                corsAllowedOrigin
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
