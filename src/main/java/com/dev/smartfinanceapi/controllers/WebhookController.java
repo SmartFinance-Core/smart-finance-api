@@ -86,10 +86,20 @@ public class WebhookController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acceso denegado: API Key inválida");
         }
 
-        // 2. Buscamos al dueño del correo
-        User user = userRepository.findFirstByEmail(request.getUserEmail());
+        // 2. Buscamos al dueño (Por WhatsApp o por Correo)
+        User user = null;
+
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
+            // Si n8n nos envía un número, buscamos por teléfono
+            user = userRepository.findFirstByPhoneNumber(request.getPhoneNumber());
+        } else if (request.getUserEmail() != null && !request.getUserEmail().isEmpty()) {
+            // Si n8n nos envía un correo, buscamos por correo
+            user = userRepository.findFirstByEmail(request.getUserEmail());
+        }
+
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado en la base de datos");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Usuario no encontrado. Asegúrate de que el teléfono o correo estén registrados.");
         }
 
         // 3. Armamos el Ingreso automáticamente

@@ -24,4 +24,16 @@ public class User {
 
     @Column(name = "created_at", updatable = false) // Fecha de creación, no se puede modificar luego
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "phone_number", unique = true)
+    private String phoneNumber;
+
+    // Recuerda agregar sus respectivos Getters y Setters al final del archivo
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 }

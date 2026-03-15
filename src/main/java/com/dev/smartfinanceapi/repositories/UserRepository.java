@@ -12,5 +12,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Para que tu nuevo código del Webhook funcione seguro
     User findFirstByEmail(String email);
-
+    User findFirstByPhoneNumber(String phoneNumber);
 }

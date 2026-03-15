@@ -14,4 +14,15 @@ public class WebhookIncomeRequest {
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+    // Agrega esto a ambos archivos DTO
+    private String phoneNumber;
+
+    // Y sus respectivos Getters y Setters
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 }

@@ -17,4 +17,15 @@ public class WebhookExpenseRequest {
     public void setDescription(String description) { this.description = description; }
     public String getCategoryName() { return categoryName; }
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    // Agrega esto a ambos archivos DTO
+    private String phoneNumber;
+
+    // Y sus respectivos Getters y Setters
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 }
