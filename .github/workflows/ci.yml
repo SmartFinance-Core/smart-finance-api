@@ -173,34 +173,3 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:java"
-
-  # ─────────────────────────────────────────────
-  # JOB 4 — Deploy a Railway
-  # Solo corre en push a main (no en PRs)
-  # Solo si build-and-test pasó
-  # ─────────────────────────────────────────────
-  deploy:
-    name: Deploy → Railway
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: 📥 Checkout código
-        uses: actions/checkout@v4
-
-      - name: 🚂 Instalar Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: 🚀 Deploy a Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          railway up \
-            --project 61777a68-4fe7-4375-b314-98b4e0a15442 \
-            --service f693e4fc-14dd-4a77-819c-1cb402ba33f4 \
-            --environment 8bd017b5-3a10-49d3-8fe9-007df6deb60c \
-            --detach
-
-      - name: ✅ Deploy completado
-        run: echo "Deploy enviado a Railway. Verifica el estado en railway.app"
