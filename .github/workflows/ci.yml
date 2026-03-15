@@ -197,6 +197,7 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           railway up \
+            --project 61777a68-4fe7-4375-b314-98b4e0a15442 \
             --service f693e4fc-14dd-4a77-819c-1cb402ba33f4 \
             --environment 8bd017b5-3a10-49d3-8fe9-007df6deb60c \
             --detach
