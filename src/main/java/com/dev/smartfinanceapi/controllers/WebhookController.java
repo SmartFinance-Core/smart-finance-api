@@ -64,7 +64,7 @@ public class WebhookController {
         newExpense.setCategory(category);
         newExpense.setUser(user);
         newExpense.setDate(LocalDateTime.now());
-
+        newExpense.setExternalId(request.getExternalId());
         // 5. Lo guardamos (Y aprovechamos para que tu servicio dispare el evento a RabbitMQ)
         Expense savedExpense = expenseService.createExpense(newExpense);
 
@@ -108,6 +108,7 @@ public class WebhookController {
         newIncome.setSource(request.getSource());
         newIncome.setUser(user);
         newIncome.setDate(LocalDateTime.now());
+        newIncome.setExternalId(request.getExternalId());
 
         // 4. Lo guardamos en la base de datos
         Income savedIncome = incomeService.createIncome(newIncome);

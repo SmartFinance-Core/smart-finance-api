@@ -6,7 +6,9 @@ public class WebhookIncomeRequest {
     private String userEmail;
     private BigDecimal amount;
     private String source; // Ej: "Sueldo BCP", "Yape de Cliente"
-
+    private String externalId;
+    public String getExternalId() { return externalId; }
+    public void setExternalId(String externalId) { this.externalId = externalId; }
     // Getters y Setters
     public String getUserEmail() { return userEmail; }
     public void setUserEmail(String userEmail) { this.userEmail = userEmail; }

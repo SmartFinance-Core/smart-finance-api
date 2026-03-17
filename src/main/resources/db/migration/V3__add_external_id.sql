@@ -1,0 +1,5 @@
+ALTER TABLE expenses
+    ADD COLUMN external_id VARCHAR(255) NULL UNIQUE;
+
+ALTER TABLE incomes
+    ADD COLUMN external_id VARCHAR(255) NULL UNIQUE;

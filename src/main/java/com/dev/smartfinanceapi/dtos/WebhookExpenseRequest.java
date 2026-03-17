@@ -7,7 +7,9 @@ public class WebhookExpenseRequest {
     private BigDecimal amount;    // El total extraído
     private String description;   // Ej: "Compra en Plaza Vea"
     private String categoryName;  // Ej: "Alimentación"
-
+    private String externalId;
+    public String getExternalId() { return externalId; }
+    public void setExternalId(String externalId) { this.externalId = externalId; }
     // Getters y Setters
     public String getUserEmail() { return userEmail; }
     public void setUserEmail(String userEmail) { this.userEmail = userEmail; }

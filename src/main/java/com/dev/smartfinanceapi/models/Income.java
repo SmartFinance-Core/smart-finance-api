@@ -15,6 +15,9 @@ public class Income {
     @Column(nullable = false)
     private BigDecimal amount;
 
+    @Column(name = "external_id", unique = true)
+    private String externalId;
+
     @Column(nullable = false)
     private String source; // Ej: "Sueldo", "Yape de Juan", "Trabajo Freelance"
 
@@ -37,4 +40,8 @@ public class Income {
     public void setDate(LocalDateTime date) { this.date = date; }
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+
+    public String getExternalId() { return externalId; }
+    public void setExternalId(String externalId) { this.externalId = externalId; }
+
 }

@@ -22,6 +22,9 @@ public class Expense {
     @Column(nullable = false)
     private BigDecimal amount; // Usamos BigDecimal para dinero, es mucho más preciso que Double
 
+    @Column(name = "external_id", unique = true)
+    private String externalId;
+
     @Column(nullable = false)
     private String description; // Ej: "Almuerzo en la universidad"
 
@@ -45,4 +48,8 @@ public class Expense {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public String getExternalId() { return externalId; }
+    public void setExternalId(String externalId) { this.externalId = externalId; }
+
 }

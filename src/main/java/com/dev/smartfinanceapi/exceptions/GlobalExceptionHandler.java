@@ -12,7 +12,15 @@ import java.util.Map;
 
 @RestControllerAdvice // Esta anotación convierte a la clase en un vigía que escucha errores en toda la app
 public class GlobalExceptionHandler {
-
+    @org.springframework.web.bind.annotation.ExceptionHandler(
+            org.springframework.dao.DataIntegrityViolationException.class
+    )
+    public org.springframework.http.ResponseEntity<String> handleDuplicate(
+            org.springframework.dao.DataIntegrityViolationException ex) {
+        return org.springframework.http.ResponseEntity
+                .status(409)
+                .body("Registro duplicado — ya fue procesado anteriormente.");
+    }
     // 1. Capturar errores de validación (cuando @Valid falla)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
