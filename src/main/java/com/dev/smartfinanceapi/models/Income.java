@@ -27,6 +27,7 @@ public class Income {
     // Relación: Un ingreso pertenece a un Usuario
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
 
     // --- GETTERS Y SETTERS ---

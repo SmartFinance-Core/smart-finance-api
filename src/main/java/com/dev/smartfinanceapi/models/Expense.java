@@ -34,6 +34,8 @@ public class Expense {
     // Relación: Muchos gastos pertenecen a un (ManyToOne) Usuario
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+
     private User user;
 
     // Relación: Muchos gastos pertenecen a una (ManyToOne) Categoría

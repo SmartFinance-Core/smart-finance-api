@@ -3,12 +3,15 @@ package com.dev.smartfinanceapi.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@Data // Anotación de Lombok que nos genera getters, setters y constructores invisibles
-@Entity // Le dice a Spring Boot: "Esta clase es una tabla de base de datos"
-@Table(name = "users") // Le ponemos "users" porque "user" a veces da error en SQL
+@Data
+@Entity
+@Table(name = "users")
+@EntityListeners(AuditingEntityListener.class)
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
 
     @Id // Es la llave primaria (Primary Key)
