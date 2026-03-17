@@ -33,13 +33,16 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()) != null) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(409).build();
+        }
+        if (userRepository.findFirstByPhoneNumber(request.getPhoneNumber()) != null) {
+            return ResponseEntity.status(409).build();
         }
 
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-
+        user.setPhoneNumber(request.getPhoneNumber());
         // Guardamos en MySQL (JPA le asigna el ID automáticamente a la variable 'user')
         userRepository.save(user);
 
