@@ -104,8 +104,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: owasp-nvd-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          key: owasp-nvd-${{ runner.os }}-weekly-${{ github.run_number }}
           restore-keys: |
+            owasp-nvd-${{ runner.os }}-weekly-
             owasp-nvd-${{ runner.os }}-
 
       - name: 🛡️ Escanear vulnerabilidades
@@ -113,6 +114,7 @@ jobs:
         run: |
           mvn org.owasp:dependency-check-maven:check \
             -DfailBuildOnCVSS=8 \
+            -DnvdApiKey=${{ secrets.NVD_API_KEY }} \
             --batch-mode --no-transfer-progress
         continue-on-error: true
 
